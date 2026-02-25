@@ -1,0 +1,15 @@
+{
+  "name": "trivault",
+  "version": "0.1.0",
+  "description": "TriVault — minimal notepad + password manager with 3-code encryption",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": ["notepad","password-manager","encryption","electron"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^25.0.0"
+  }
+}

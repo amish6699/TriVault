@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'"> 
+    <title>TriVault</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 12px }
+      .row { display:flex; gap:12px }
+      textarea { width:100%; height:300px }
+      .panel { margin-top:12px }
+    </style>
+  </head>
+  <body>
+    <h2>TriVault — Notepad + Passwords</h2>
+
+    <div>
+      <label>Enter 3 codes (comma separated): <input id="codes" style="width:50%" placeholder="code1,code2,code3"></label>
+    </div>
+
+    <div class="panel">
+      <h3>Notepad</h3>
+      <textarea id="notepad"></textarea>
+      <div class="row">
+        <button id="save-note">Save Encrypted Locally</button>
+        <button id="load-note">Load & Decrypt</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Password Manager</h3>
+      <div>
+        <input id="p-key" placeholder="Key"> <input id="p-value" placeholder="Value"> <button id="add-p">Add</button>
+      </div>
+      <ul id="pw-list"></ul>
+      <div class="row">
+        <button id="save-pw">Save Passwords</button>
+        <button id="load-pw">Load Passwords</button>
+      </div>
+    </div>
+
+    <script src="renderer.js"></script>
+  </body>
+</html>
