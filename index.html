@@ -1,44 +1,160 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'"> 
-    <title>TriVault</title>
-    <style>
-      body { font-family: Arial, sans-serif; margin: 12px }
-      .row { display:flex; gap:12px }
-      textarea { width:100%; height:300px }
-      .panel { margin-top:12px }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com"> 
+    <title>TriVault — Secure Client-Side Notepad & Vault</title>
+    <link rel="stylesheet" href="styles.css">
   </head>
   <body>
-    <h2>TriVault — Notepad + Passwords</h2>
+    <!-- Toast notifications container -->
+    <div id="toast-container" aria-live="polite"></div>
 
-    <div>
-      <label>Enter 3 codes (comma separated): <input id="codes" style="width:50%" placeholder="code1,code2,code3"></label>
+    <div class="container-fluid">
+      <!-- Header Section -->
+      <header class="header">
+        <div class="logo" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L3 6v6c0 5 4 9 9 9s9-4 9-9V6l-9-4z" fill="#fff" opacity="0.9"/>
+            <path d="M12 8a4 4 0 100 8 4 4 0 000-8z" fill="#ffebee" opacity="0.95"/>
+          </svg>
+        </div>
+        <div class="header-title">
+          <h1>TriVault</h1>
+          <div class="muted">Secure client-side notepad and passwords encrypted with three distinct keys.</div>
+        </div>
+      </header>
+
+      <!-- Key Panel -->
+      <section class="panel">
+        <h2 class="panel-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent-secondary)">
+            <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path>
+          </svg>
+          Encryption Keys Triad
+        </h2>
+        
+        <div class="codes-grid">
+          <div class="code-field-wrapper">
+            <label for="code1" class="code-field-label">Key 1</label>
+            <div class="input-group-custom">
+              <input type="password" id="code1" placeholder="Enter key 1..." autocomplete="off">
+              <button type="button" class="toggle-password" data-target="code1" aria-label="Toggle password visibility">
+                <!-- Eye icon -->
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              </button>
+            </div>
+          </div>
+          
+          <div class="code-field-wrapper">
+            <label for="code2" class="code-field-label">Key 2</label>
+            <div class="input-group-custom">
+              <input type="password" id="code2" placeholder="Enter key 2..." autocomplete="off">
+              <button type="button" class="toggle-password" data-target="code2" aria-label="Toggle password visibility">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="code-field-wrapper">
+            <label for="code3" class="code-field-label">Key 3</label>
+            <div class="input-group-custom">
+              <input type="password" id="code3" placeholder="Enter key 3..." autocomplete="off">
+              <button type="button" class="toggle-password" data-target="code3" aria-label="Toggle password visibility">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="codes-action-bar">
+          <button id="generate-codes" class="btn">Generate Key Triad</button>
+        </div>
+
+        <!-- Generated Key Triad Display (Hidden by default, shown when generated) -->
+        <div id="reveal-panel" class="reveal-block" style="display: none;">
+          <div class="reveal-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            Generated Credentials (Copy & save these in a safe place!)
+          </div>
+          <div class="reveal-items">
+            <div class="reveal-item">
+              <span class="reveal-label">Key 1:</span>
+              <span id="label-code-1" class="reveal-val"></span>
+              <button id="copy-1" class="btn btn-sm btn-icon-only" aria-label="Copy Key 1">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              </button>
+            </div>
+            <div class="reveal-item">
+              <span class="reveal-label">Key 2:</span>
+              <span id="label-code-2" class="reveal-val"></span>
+              <button id="copy-2" class="btn btn-sm btn-icon-only" aria-label="Copy Key 2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              </button>
+            </div>
+            <div class="reveal-item">
+              <span class="reveal-label">Key 3:</span>
+              <span id="label-code-3" class="reveal-val"></span>
+              <button id="copy-3" class="btn btn-sm btn-icon-only" aria-label="Copy Key 3">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Notepad / Vault Workspace -->
+      <section class="panel">
+        <div class="tabs-container">
+          <button id="mode-text" type="button" class="tab-btn active">Text Notepad</button>
+          <button id="mode-kv" type="button" class="tab-btn">Password Vault</button>
+        </div>
+
+        <!-- Text Mode Workspace -->
+        <div id="text-mode" class="notepad-wrapper">
+          <textarea id="notepad" placeholder="Type your secure notes here... Your data is kept strictly local and is never uploaded."></textarea>
+        </div>
+
+        <!-- Key/Value Mode Workspace -->
+        <div id="kv-mode" style="display:none;">
+          <div class="kv-header">
+            <div class="muted">Manage your encrypted key-value pairs (e.g. website log-ins/secrets)</div>
+            <button id="add-row" class="btn btn-sm">Add Vault Entry</button>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th style="width: 40%">Label / Key</th>
+                  <th style="width: 45%">Secret / Value</th>
+                  <th style="width: 15%">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="kv-tbody">
+                <!-- Javascript will insert rows here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Encrypted Action buttons -->
+        <div class="action-buttons-wrapper">
+          <button id="save-note" class="btn btn-primary">Save Encrypted Locally</button>
+          <button id="load-note" class="btn">Load & Decrypt</button>
+        </div>
+      </section>
     </div>
 
-    <div class="panel">
-      <h3>Notepad</h3>
-      <textarea id="notepad"></textarea>
-      <div class="row">
-        <button id="save-note">Save Encrypted Locally</button>
-        <button id="load-note">Load & Decrypt</button>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h3>Password Manager</h3>
-      <div>
-        <input id="p-key" placeholder="Key"> <input id="p-value" placeholder="Value"> <button id="add-p">Add</button>
-      </div>
-      <ul id="pw-list"></ul>
-      <div class="row">
-        <button id="save-pw">Save Passwords</button>
-        <button id="load-pw">Load Passwords</button>
-      </div>
-    </div>
-
-    <script src="renderer.js"></script>
+    <!-- Scripts -->
+    <script type="module" src="renderer.js"></script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a0a0f">
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('service-worker.js').catch(() => {})
+      }
+    </script>
   </body>
 </html>

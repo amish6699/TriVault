@@ -1,15 +1,38 @@
-**TriVault**
+ # TriVault (PWA)
 
-- **What:** Minimal cross-platform notepad + password manager that encrypts data using three user-provided codes.
-- **Name:** TriVault
-- **Stack:** Electron (desktop), Node.js (built-in crypto), simple HTML/JS UI. This keeps the tech minimal and cross-platform (macOS, Windows, Linux).
+TriVault is a minimal Progressive Web App that combines a notepad and key/value storage and encrypts data client-side using three user-provided codes.
 
-Why three codes?
-- The user supplies three independent codes. The app concatenates them and derives an AES-256-GCM key via PBKDF2. This provides a straightforward UX while still using strong crypto primitives.
+## Key ideas
+- Runs entirely in the browser as a PWA (installable to homescreen/desktop).
+- Uses the browser `Web Crypto API` for PBKDF2 key derivation and AES-256-GCM encryption.
+- Secrets (the three codes) are not persisted; only the ciphertext + metadata (salt/iv) are stored locally.
 
-Quick start
+## Why this stack
+- PWA: works across desktop and mobile browsers without bundling native code.
+- Web Crypto: secure, native browser cryptography without external native modules.
 
-1. Install dependencies (Node 18+ recommended):
+## Minimum tech stack
+- Modern browser supporting Service Worker and Web Crypto.
+- Node.js only needed for local development server (script uses `npx http-server`).
+
+## Application name
+- TriVault
+
+## Features implemented
+- Notepad: free-form text editing and encrypted save/load.
+- Key/Value mode: store named values and copy them to clipboard.
+- Single storage: either plain text or a KV JSON object is encrypted and saved under the same local key.
+- Offline-ready via a basic service worker; app can be installed from the browser.
+
+## Files of interest
+- `index.html` + `renderer.js`: UI and frontend logic (now a module)
+- `src/crypto-web.js`: browser-side encryption/decryption (PBKDF2 + AES-256-GCM)
+- `styles.css`: theme and styling
+- `service-worker.js` and `manifest.json`: PWA assets
+
+## Quick start (development)
+
+1. Install dependencies and run a local server
 
 ```bash
 cd TriVault
@@ -17,22 +40,24 @@ npm install
 npm run start
 ```
 
-Files of interest
-- `main.js`: Electron main process and IPC handlers
-- `preload.js`: secure bridge to renderer
-- `src/crypto.js`: encryption/decryption code (PBKDF2 + AES-256-GCM)
-- `index.html` + `renderer.js`: UI and frontend logic
+2. Open `http://localhost:3000` in a browser that supports PWAs (Chrome, Edge, Firefox has limited install support).
 
-Notes & next steps
-- Storage: currently stores encrypted JSON files locally under the Electron `userData` path: `trivault_note.json` and `trivault_pw.json`.
-- Sync: placeholder—you will need to configure OAuth client IDs for Google Drive and Zoho Drive. The codebase includes IPC points where Drive upload/download can be added.
-- Security: secrets (the 3 codes) are never stored — only used to derive keys in memory. Salt/iv/auth tag are stored alongside ciphertext to allow decryption.
+3. Use the top input to enter exactly three codes separated by commas (or click "Generate Codes").
 
-To push to a GitHub repository
-- I can push this project to a public repository for you, but I need either:
-  - a GitHub repository URL where you want the code pushed (and collaborator access), or
-  - a personal access token I can use to create/push a repo on your behalf.
+## Storage & format
+- Data is stored in `localStorage` under the key `trivault_note` as an encrypted JSON blob containing `salt`, `iv`, and `ciphertext` (base64-encoded).
+- When saving in Key/Value mode the app stores a JSON object: `{ type: 'kv', data: { key: value } }` encrypted the same as plain text.
 
-If you want, I can also add:
-- Google Drive & Zoho Drive sync helpers (OAuth flow + upload/download)
-- Packaging (electron-builder) for cross-platform installers
+## PWA notes
+- The service worker caches core assets for offline usage. Install the app from the browser's install prompt to run it like a native app.
+
+## Sync (Google Drive / Zoho Drive)
+- Sync remains a future enhancement. Implementing it requires OAuth credentials and uploading/downloading the encrypted blobs only (never plaintext).
+
+## Security notes
+- The three user codes are concatenated with a delimiter and used as input to PBKDF2 with a random salt to derive an AES-256-GCM key. The salt and iv are stored with the ciphertext so the same codes can recover the data.
+- Do not store the three codes anywhere. If users lose them, ciphertext cannot be recovered.
+
+## License
+
+MIT
