@@ -1,63 +1,105 @@
- # TriVault (PWA)
+# 🛡️ TriVault
 
-TriVault is a minimal Progressive Web App that combines a notepad and key/value storage and encrypts data client-side using three user-provided codes.
+TriVault is a minimal, ultra-secure, and offline-first Progressive Web App (PWA) that combines a free-form secure notepad and a structured password vault. 
 
-## Key ideas
-- Runs entirely in the browser as a PWA (installable to homescreen/desktop).
-- Uses the browser `Web Crypto API` for PBKDF2 key derivation and AES-256-GCM encryption.
-- Secrets (the three codes) are not persisted; only the ciphertext + metadata (salt/iv) are stored locally.
+It implements a **zero-knowledge architecture**, encrypting all data directly on your device using browser-native cryptography and a unique combination of **three independent security keys** (your Encryption Keys Triad).
 
-## Why this stack
-- PWA: works across desktop and mobile browsers without bundling native code.
-- Web Crypto: secure, native browser cryptography without external native modules.
+---
 
-## Minimum tech stack
-- Modern browser supporting Service Worker and Web Crypto.
-- Node.js only needed for local development server (script uses `npx http-server`).
+## 🌟 Key Features
 
-## Application name
-- TriVault
+*   **🔑 Encryption Keys Triad:** Secures your data using three separate, user-provided codes. To decrypt, all three keys must be entered correctly. It also features built-in cryptographically secure random triad generation.
+*   **📝 Dual Workspace Modes:**
+    *   **Text Notepad:** A clean, free-form text workspace for keeping secure logs, journals, or general notes.
+    *   **Password Vault (KV Store):** A structured, dynamic table to store labels (e.g., website login, service name) and values (e.g., password, API token) with copy-to-clipboard functionality and password visibility toggles.
+*   **🔒 Zero-Knowledge & Client-Side Encryption:** No remote servers, no cloud storage, and no tracking. All cryptographic operations occur strictly inside the browser. Only the derived ciphertext and encryption parameters are stored.
+*   **📱 Installable PWA (Offline Ready):** Fully offline-functional service worker that caches all core application assets. You can install it on your mobile device's home screen or desktop for a standalone, app-like experience.
+*   **✨ Premium UI/UX:** Dark mode aesthetics with glassmorphic elements, smooth custom transitions, real-time toast notifications, and interactive visibility controls.
 
-## Features implemented
-- Notepad: free-form text editing and encrypted save/load.
-- Key/Value mode: store named values and copy them to clipboard.
-- Single storage: either plain text or a KV JSON object is encrypted and saved under the same local key.
-- Offline-ready via a basic service worker; app can be installed from the browser.
+---
 
-## Files of interest
-- `index.html` + `renderer.js`: UI and frontend logic (now a module)
-- `src/crypto-web.js`: browser-side encryption/decryption (PBKDF2 + AES-256-GCM)
-- `styles.css`: theme and styling
-- `service-worker.js` and `manifest.json`: PWA assets
+## 🔒 Cryptographic Details & Security Model
 
-## Quick start (development)
+TriVault uses the standard **Web Crypto API** built natively into modern web browsers:
 
-1. Install dependencies and run a local server
+1.  **Normalization:** The three user-provided keys ($C_1$, $C_2$, $C_3$) are concatenated with a pipe delimiter (`|`) and converted into a UTF-8 byte array:
+    $$\text{Derived Input} = C_1 \mathbin{\Vert} \text{"|"} \mathbin{\Vert} C_2 \mathbin{\Vert} \text{"|"} \mathbin{\Vert} C_3$$
+2.  **Key Derivation:** The combined array is passed through **PBKDF2** (Password-Based Key Derivation Function 2) using a cryptographically secure 16-byte random salt, **250,000 iterations**, and a **SHA-256** hash function to derive a 256-bit master key.
+3.  **Encryption:** The plaintext (notepad text or serialized JSON vault database) is encrypted using **AES-256-GCM** with a cryptographically secure 12-byte random Initialization Vector (IV).
+4.  **Local Storage:** The encrypted payload is serialized to a JSON string containing the base64-encoded `salt`, `iv`, and `ciphertext` and saved to browser `localStorage` under the key `trivault_note`:
+    ```json
+    {
+      "salt": "base64...",
+      "iv": "base64...",
+      "ciphertext": "base64..."
+    }
+    ```
+
+> [!WARNING]
+> **No Key Persistence:** Your three keys are never stored in `localStorage`, cookies, memory (beyond the active session), or sent over the network. If you lose or forget even one of the three keys, your encrypted data **cannot be recovered**.
+
+---
+
+## 🚀 How to Run
+
+### Requirements
+- A modern web browser supporting the Web Crypto API and Service Workers (Chrome, Edge, Firefox, Safari).
+- **Node.js** installed locally (only required to serve the files on localhost).
+
+### Steps
+1.  **Clone the repository and navigate to the directory:**
+    ```bash
+    git clone https://github.com/amish6699/trivault.git
+    cd TriVault
+    ```
+2.  **Install dependencies (minimal dev server):**
+    ```bash
+    npm install
+    ```
+3.  **Start the local development server:**
+    ```bash
+    npm run start
+    ```
+    *This runs `npx http-server` on port 3000.*
+4.  **Open the application:**
+    Open [http://localhost:3000](http://localhost:3000) in your web browser.
+
+---
+
+## 📖 User Guide / Walkthrough
+
+1.  **Initialize/Enter Keys:**
+    - On first load, TriVault automatically generates a secure, random triad for you. 
+    - You can write down and copy these keys, or click **"Generate Key Triad"** to get a new set.
+    - If you already have your triad keys, type them into the **Key 1**, **Key 2**, and **Key 3** fields. Click the eye icons to toggle visibility.
+2.  **Create / Modify Data:**
+    - **Notepad Mode:** Click **"Text Notepad"** and write your text.
+    - **Password Vault Mode:** Click **"Password Vault"** to switch to the table. Click **"Add Vault Entry"** to create label-secret rows. Copy values directly with the copy button, or delete rows using the trash bin icon.
+3.  **Save Your Data:**
+    - With your keys populated, click **"Save Encrypted Locally"**.
+    - This will encrypt the active mode's data and save the secure payload to your browser's local storage.
+4.  **Load & Decrypt:**
+    - To load data in a new session, fill in your exact three keys.
+    - Click **"Load & Decrypt"**. The application will automatically detect whether the saved data was a plain text notepad or a password vault, decrypt it, and switch to the correct tab.
+
+---
+
+## 📂 Project Structure
 
 ```bash
-cd TriVault
-npm install
-npm run start
+TriVault/
+├── index.html          # Main UI structure and DOM elements
+├── styles.css          # Design system, glassmorphic themes, animations
+├── renderer.js         # UI events, logic, and local storage integration
+├── service-worker.js   # Service worker configuration for offline capability
+├── manifest.json       # PWA installer specifications
+├── package.json        # Node configuration and run scripts
+└── src/
+    └── crypto-web.js   # Cryptographic engine (PBKDF2, AES-GCM)
 ```
 
-2. Open `http://localhost:3000` in a browser that supports PWAs (Chrome, Edge, Firefox has limited install support).
+---
 
-3. Use the top input to enter exactly three codes separated by commas (or click "Generate Codes").
+## 📝 License
 
-## Storage & format
-- Data is stored in `localStorage` under the key `trivault_note` as an encrypted JSON blob containing `salt`, `iv`, and `ciphertext` (base64-encoded).
-- When saving in Key/Value mode the app stores a JSON object: `{ type: 'kv', data: { key: value } }` encrypted the same as plain text.
-
-## PWA notes
-- The service worker caches core assets for offline usage. Install the app from the browser's install prompt to run it like a native app.
-
-## Sync (Google Drive / Zoho Drive)
-- Sync remains a future enhancement. Implementing it requires OAuth credentials and uploading/downloading the encrypted blobs only (never plaintext).
-
-## Security notes
-- The three user codes are concatenated with a delimiter and used as input to PBKDF2 with a random salt to derive an AES-256-GCM key. The salt and iv are stored with the ciphertext so the same codes can recover the data.
-- Do not store the three codes anywhere. If users lose them, ciphertext cannot be recovered.
-
-## License
-
-MIT
+This project was created for fun and learning. Feel free to use, modify, and distribute it however you like.
