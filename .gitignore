@@ -2,8 +2,8 @@ node_modules
 dist
 *.log
 .env
-deployment_readme.md
-re-deployment_readme.md
+z_deployment_readme.md
+z_re-deployment_readme.md
 gcp_costing.md
 zero_cost_commands.md
 
