@@ -1,4 +1,4 @@
-const CACHE = 'trivault-v2'
+const CACHE = 'trivault-v11'
 const ASSETS = [
   '.',
   'index.html',
