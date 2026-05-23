@@ -4,7 +4,7 @@ dist
 .env
 z_deployment_readme.md
 z_re-deployment_readme.md
-gcp_costing.md
+z_gcp_costing.md
 zero_cost_commands.md
 
 # Docker
